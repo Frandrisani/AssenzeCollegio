@@ -1,23 +1,8 @@
 import React, { useMemo } from "react";
-import { Card, Row, Col, Badge } from "react-bootstrap";
-// 👇 LA CORREZIONE È ESATTAMENTE QUI. QUESTA RIGA DEVE ESSERE COSÌ.
-import {
-  computeStats,
-  academicYearFor,
-  ACADEMIC_LIMIT,
-} from "../utils/dateUtils";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  Legend,
-} from "recharts";
-import dayjs from "dayjs";
+import { Card } from "react-bootstrap";
+import { computeStats, ACADEMIC_LIMIT } from "../utils/dateUtils";
 
-// Componente separato per la barra di progresso
+// Componente per la barra di progresso (rimasto invariato)
 const AbsencesProgress = ({ stats }) => (
   <Card className="glass p-3 rounded-4 h-100">
     <div className="d-flex justify-content-between align-items-center">
@@ -27,7 +12,6 @@ const AbsencesProgress = ({ stats }) => (
       </div>
       <div className="text-end">
         <h3 className="mb-0">{stats.remaining}</h3>
-        {/* Questa linea causa l'errore se ACADEMIC_LIMIT non è importato */}
         <span className="text-secondary">su {ACADEMIC_LIMIT}</span>
       </div>
     </div>
@@ -36,64 +20,57 @@ const AbsencesProgress = ({ stats }) => (
     </div>
     <div className="d-flex justify-content-between mt-1">
       <small className="text-secondary">0</small>
-      {/* Anche questa linea causa l'errore */}
       <small className="text-secondary">{ACADEMIC_LIMIT}</small>
     </div>
   </Card>
 );
 
-// Componente separato per il grafico
-const MonthlyChart = ({ stats, start, end }) => {
-  const data = useMemo(() => {
-    const months = [];
-    let cur = start;
-    while (cur.isBefore(end.add(1, "month"))) {
-      const key = cur.format("YYYY-MM");
-      const label = cur.format("MMM");
-      const pm = stats.perMonth[key] || { A: 0, G: 0, F: 0 };
-      months.push({ month: label, A: pm.A, G: pm.G, F: pm.F });
-      cur = cur.add(1, "month");
-    }
-    return months;
-  }, [stats, start, end]);
+// --- NUOVO COMPONENTE PER LE STATISTICHE ---
+const StatsDisplay = ({ stats }) => (
+  <Card className="glass p-3 rounded-4 h-100">
+    <h5 className="mb-3">Riepilogo Assenze</h5>
+    <ul className="list-group list-group-flush">
+      <li className="list-group-item d-flex justify-content-between align-items-center bg-transparent border-0 px-1 py-2">
+        <span>- Assenze totali</span>
+        <span className="badge bg-danger rounded-pill fs-6">
+          {stats.counted || 0}
+        </span>
+      </li>
+      <li className="list-group-item d-flex justify-content-between align-items-center bg-transparent border-0 px-1 py-2">
+        <span>- Assenze questo mese</span>
+        <span className="badge bg-danger rounded-pill fs-6">
+          {stats.currentMonthAbsences || 0}
+        </span>
+      </li>
+      <li className="list-group-item d-flex justify-content-between align-items-center bg-transparent border-0 px-1 py-2">
+        <span>- Giustifiche totali</span>
+        <span className="badge bg-success rounded-pill fs-6">
+          {stats.totalJustified || 0}
+        </span>
+      </li>
+      <li className="list-group-item d-flex flex-column align-items-start bg-transparent border-0 px-1 py-2">
+        <span>- Mese con più assenze</span>
+        <span className="fw-bold mt-1 text-primary">
+          {stats.topMonth.name} ({stats.topMonth.count}{" "}
+          {stats.topMonth.count === 1 ? "assenza" : "assenze"})
+        </span>
+      </li>
+    </ul>
+  </Card>
+);
 
-  const COLORS = { A: "#e74c3c", G: "#2ecc71", F: "#7f8c8d" };
-
-  return (
-    <Card className="glass p-3 rounded-4 h-100">
-      <h5>Distribuzione mensile</h5>
-      <div style={{ width: "100%", height: 280 }}>
-        <ResponsiveContainer>
-          <BarChart
-            data={data}
-            margin={{ top: 20, right: 10, left: -20, bottom: 5 }}
-          >
-            <XAxis dataKey="month" tickLine={false} axisLine={false} />
-            <YAxis tickLine={false} axisLine={false} />
-            <Tooltip cursor={{ fill: "rgba(0,0,0,0.05)" }} />
-            <Legend />
-            <Bar dataKey="A" stackId="a" name="Assenze" fill={COLORS.A} />
-            <Bar dataKey="G" stackId="a" name="Giustificate" fill={COLORS.G} />
-            <Bar dataKey="F" stackId="a" name="Festivi" fill={COLORS.F} />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
-    </Card>
-  );
-};
-
+// Componente principale che decide cosa mostrare
 export default function Dashboard({
   entries,
   showProgress = false,
-  showChart = false,
+  showStats = false,
 }) {
   const stats = useMemo(() => computeStats(entries), [entries]);
-  const { start, end } = academicYearFor();
 
   return (
     <>
       {showProgress && <AbsencesProgress stats={stats} />}
-      {showChart && <MonthlyChart stats={stats} start={start} end={end} />}
+      {showStats && <StatsDisplay stats={stats} />}
     </>
   );
 }

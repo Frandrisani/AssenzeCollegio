@@ -143,7 +143,7 @@ export default function App() {
             />
           </Col>
           <Col lg={5} md={12}>
-            <Dashboard entries={entries} showChart={true} />
+            <Dashboard entries={entries} showStats={true} />
           </Col>
         </Row>
       </Container>
