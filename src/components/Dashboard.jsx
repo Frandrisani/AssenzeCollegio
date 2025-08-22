@@ -7,8 +7,10 @@ const AbsencesProgress = ({ stats }) => (
   <Card className="glass p-3 rounded-4 h-100">
     <div className="d-flex justify-content-between align-items-center">
       <div>
-        <h5>Assenze Rimanenti</h5>
-        <p className="text-secondary mb-0">Anno Accademico in corso</p>
+        <h4>Assenze Rimanenti</h4>
+        <p className="text-secondary mb-0">
+          Anno Accademico <strong>2025/2026</strong>
+        </p>
       </div>
       <div className="text-end">
         <h3 className="mb-0">{stats.remaining}</h3>
