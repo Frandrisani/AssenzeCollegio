@@ -10,7 +10,7 @@ export const ACADEMIC_LIMIT = 136;
 export const academicYearFor = () => {
   // --- MODIFICA RICHIESTA ---
   // Impostato l'anno accademico fisso come da richiesta.
-  const start = dayjs("2025-09-01");
+  const start = dayjs("2025-10-01");
   const end = dayjs("2026-09-30");
   return { start, end };
 };
