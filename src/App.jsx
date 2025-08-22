@@ -1,75 +1,102 @@
-import React, { useEffect, useMemo, useState } from 'react'
-import { Container, Navbar, Nav, Button, Row, Col, Dropdown } from 'react-bootstrap'
-import { ToastContainer, toast } from 'react-toastify'
-import dayjs from 'dayjs'
-import { onAuth, auth, logout } from './firebase'
-import AuthGate from './components/AuthGate'
-import CalendarGrid from './components/CalendarGrid'
-import Dashboard from './components/Dashboard'
-import { doc, setDoc, getDoc, onSnapshot } from 'firebase/firestore'
-import { db } from './firebase'
-import { academicYearFor } from './utils/dateUtils'
+import React, { useEffect, useState } from "react";
+import { Container, Navbar, Button, Row, Col } from "react-bootstrap";
+import { ToastContainer, toast } from "react-toastify";
+import dayjs from "dayjs";
+import { onAuth, logout } from "./firebase";
+import AuthGate from "./components/AuthGate";
+import CalendarGrid from "./components/CalendarGrid";
+import Dashboard from "./components/Dashboard";
+import { doc, setDoc, onSnapshot } from "firebase/firestore";
+import { db } from "./firebase";
+import { academicYearFor } from "./utils/dateUtils";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function App() {
-  const [user, setUser] = useState(null)
-  const [entries, setEntries] = useState({})
-  const [yearMonth, setYearMonth] = useState(()=>{
-    const { start } = academicYearFor()
-    return { year: start.year(), month: start.month() }
-  })
+  const [user, setUser] = useState(null);
+  const [entries, setEntries] = useState({});
+  const [yearMonth, setYearMonth] = useState(() => {
+    const { start } = academicYearFor();
+    return { year: start.year(), month: start.month() };
+  });
 
-  useEffect(()=>{
-    const unsub = onAuth(u => {
-      setUser(u || null)
-    })
-    return () => unsub()
-  }, [])
+  // --- BLOCCO DI DEBUG ---
+  useEffect(() => {
+    console.log("... [App.jsx] Imposto il listener onAuth...");
+    const unsub = onAuth((u) => {
+      // Questo è il messaggio PIÙ IMPORTANTE. Se non appare dopo il login,
+      // la comunicazione con Firebase non sta funzionando.
+      console.log("🔥 [App.jsx] Listener onAuth ATTIVATO! L'utente è:", u);
+      setUser(u || null);
+    });
 
-  // Sync entries
-  useEffect(()=>{
-    if (!user) return
-    const { start } = academicYearFor()
-    const docRef = doc(db, 'users', user.uid, 'datasets', String(start.year()))
-    const unsub = onSnapshot(docRef, (snap)=>{
-      const data = snap.data() || {}
-      setEntries(data.entries || {})
-    })
-    return () => unsub()
-  }, [user])
+    // Questa è una "funzione di pulizia" che viene eseguita quando il componente non è più visibile
+    return () => {
+      console.log("... [App.jsx] Pulisco il listener onAuth.");
+      unsub();
+    };
+  }, []); // L'array vuoto [] assicura che questo codice venga eseguito solo una volta
+
+  // Sincronizzazione dati con Firestore
+  useEffect(() => {
+    if (!user) return;
+    const { start } = academicYearFor();
+    const docRef = doc(db, "users", user.uid, "datasets", String(start.year()));
+    const unsub = onSnapshot(docRef, (snap) => {
+      const data = snap.data() || {};
+      setEntries(data.entries || {});
+    });
+    return () => unsub();
+  }, [user]);
 
   const saveEntries = async (newMap) => {
-    const { start } = academicYearFor()
-    const docRef = doc(db, 'users', user.uid, 'datasets', String(start.year()))
-    await setDoc(docRef, { entries: newMap }, { merge: true })
-  }
+    const { start } = academicYearFor();
+    const docRef = doc(db, "users", user.uid, "datasets", String(start.year()));
+    await setDoc(docRef, { entries: newMap }, { merge: true });
+  };
 
   const handleToggleDay = (dateStr, current) => {
-    const order = [null, 'A', 'G', 'F']
-    const next = order[(order.indexOf(current) + 1) % order.length]
-    const updated = { ...entries }
-    if (!next) delete updated[dateStr]
-    else updated[dateStr] = next
-    setEntries(updated)
-    saveEntries(updated).then(()=>{
-      toast.success(`Giorno ${dateStr} impostato a ${next || 'vuoto'}`)
-    }).catch(err=>{
-      toast.error('Errore nel salvataggio')
-      console.error(err)
-    })
-  }
+    const order = [null, "A", "G", "F"];
+    const next = order[(order.indexOf(current) + 1) % order.length];
+    const updated = { ...entries };
+    if (!next) delete updated[dateStr];
+    else updated[dateStr] = next;
 
-  const months = useMemo(()=>{
-    const list = []
-    const { start, end } = academicYearFor()
-    let cur = start
-    while (cur.isBefore(end.add(1,'month'))) {
-      list.push({label: cur.format('MMMM YYYY'), value: {year: cur.year(), month: cur.month()}})
-      cur = cur.add(1,'month')
-    }
-    return list
-  }, [])
+    const formattedDate = dayjs(dateStr, "YYYY-MM-DD").format("DD/MM/YYYY");
 
-  if (!user) return <><AuthGate /><ToastContainer position="bottom-right" /></>
+    saveEntries(updated)
+      .then(() => {
+        toast.success(`Giorno ${formattedDate} impostato a ${next || "vuoto"}`);
+      })
+      .catch((err) => {
+        toast.error("Errore nel salvataggio");
+        console.error(err);
+      });
+    setEntries(updated);
+  };
+
+  const handlePrevMonth = () => {
+    const current = dayjs().year(yearMonth.year).month(yearMonth.month);
+    const prev = current.subtract(1, "month");
+    setYearMonth({ year: prev.year(), month: prev.month() });
+  };
+
+  const handleNextMonth = () => {
+    const current = dayjs().year(yearMonth.year).month(yearMonth.month);
+    const next = current.add(1, "month");
+    setYearMonth({ year: next.year(), month: next.month() });
+  };
+
+  // Se l'utente non è loggato, mostra la schermata di accesso
+  if (!user)
+    return (
+      <>
+        <AuthGate />
+        <ToastContainer position="bottom-right" theme="colored" />
+      </>
+    );
+
+  // Se l'utente è loggato, calcola i dati e mostra la dashboard
+  const { start, end } = academicYearFor();
 
   return (
     <>
@@ -78,47 +105,54 @@ export default function App() {
           <Navbar.Brand>Assenze Alloggio</Navbar.Brand>
           <Navbar.Toggle />
           <Navbar.Collapse className="justify-content-end">
-            <Nav className="me-3">
-              <Dropdown>
-                <Dropdown.Toggle className="rounded-pill" variant="secondary">
-                  {months.find(m=>m.value.year===yearMonth.year && m.value.month===yearMonth.month)?.label}
-                </Dropdown.Toggle>
-                <Dropdown.Menu>
-                  {months.map((m, idx)=>(
-                    <Dropdown.Item key={idx} onClick={()=>setYearMonth(m.value)}>{m.label}</Dropdown.Item>
-                  ))}
-                </Dropdown.Menu>
-              </Dropdown>
-            </Nav>
             <div className="d-flex align-items-center gap-2">
-              <span className="text-secondary small">{user.displayName}</span>
-              <Button size="sm" variant="outline-light" className="rounded-pill" onClick={logout}>Esci</Button>
+              <span className="text-secondary small d-none d-lg-block">
+                {user.displayName}
+              </span>
+              <Button
+                size="sm"
+                variant="outline-danger"
+                className="rounded-pill"
+                onClick={logout}
+              >
+                Esci
+              </Button>
             </div>
           </Navbar.Collapse>
         </Container>
       </Navbar>
 
       <Container className="pb-4">
-        <Row className="g-3">
-          <Col md={6}>
+        <Row className="mb-4">
+          <Col>
+            <Dashboard entries={entries} showProgress={true} />
+          </Col>
+        </Row>
+
+        <Row className="g-4">
+          <Col lg={7} md={12}>
             <CalendarGrid
               year={yearMonth.year}
               month={yearMonth.month}
               entries={entries}
               onToggleDay={handleToggleDay}
+              onPrevMonth={handlePrevMonth}
+              onNextMonth={handleNextMonth}
+              academicStart={start}
+              academicEnd={end}
             />
           </Col>
-          <Col md={6}>
-            <Dashboard entries={entries} />
+          <Col lg={5} md={12}>
+            <Dashboard entries={entries} showChart={true} />
           </Col>
         </Row>
-
-        <footer className="mt-4 text-center footer">
-          <div>✨ Chicche speciali: interfaccia glass, progress bar animata, chart interattivo, toasts, stato sincronizzato in tempo reale.</div>
-          <div className="mt-1">Suggerimento: clicca sui giorni per ciclare tra A → G → F → vuoto.</div>
-        </footer>
       </Container>
-      <ToastContainer position="bottom-right" />
+      <ToastContainer
+        position="bottom-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        theme="colored"
+      />
     </>
-  )
+  );
 }

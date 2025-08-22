@@ -1,85 +1,102 @@
 :root {
-  --bg: #0f172a;
-  --card: #111827;
-  --muted: #94a3b8;
-  --accent: #0ea5e9;
-  --ok: #22c55e;
-  --warn: #f59e0b;
-  --bad: #ef4444;
+  --bg: #f4f7f9;
+  --card-bg: rgba(255, 255, 255, 0.85);
+  --card-border: rgba(0, 0, 0, 0.08);
+  --text-primary: #2c3e50;
+  --text-secondary: #7f8c8d;
+  --accent: #3498db;
+  --ok: #2ecc71;
+  --bad: #e74c3c;
+  --font-family: "Poppins", sans-serif;
 }
 
 body {
-  background: radial-gradient(
-    1200px 800px at 80% -10%,
-    #1f2937 0%,
-    #0b1220 60%,
-    #060913 100%
-  );
+  background-color: var(--bg);
   min-height: 100vh;
-  color: #e5e7eb;
+  color: var(--text-primary);
+  font-family: var(--font-family);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .glass {
-  background: rgba(17, 24, 39, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
-  backdrop-filter: blur(8px);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .badge-status {
   font-weight: 600;
   letter-spacing: 0.3px;
+  padding: 0.4em 0.6em;
+  font-size: 0.75rem;
 }
 .badge-A {
-  background: var(--bad) !important;
+  background-color: var(--bad) !important;
+  color: white !important;
 }
 .badge-G {
-  background: var(--ok) !important;
+  background-color: var(--ok) !important;
+  color: white !important;
 }
 .badge-F {
-  background: var(--muted) !important;
-  color: #0b0f19 !important;
+  background-color: var(--text-secondary) !important;
+  color: white !important;
 }
 
 .calendar-day {
-  height: 64px;
-  border: 1px dashed rgba(255, 255, 255, 0.07);
+  min-height: 70px;
+  border: 1px solid rgba(0, 0, 0, 0.07);
   cursor: pointer;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   padding: 6px;
-  transition: transform 0.05s ease;
+  transition: all 0.2s ease;
+  border-radius: 8px; /* Aggiunto per un look più morbido */
 }
 .calendar-day:hover {
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  border-color: var(--accent);
 }
 .calendar-day.disabled {
-  opacity: 0.35;
+  opacity: 0.4;
   pointer-events: none;
+  background-color: rgba(0, 0, 0, 0.02);
 }
 .calendar-day .date-num {
   font-size: 0.85rem;
-  color: #9ca3af;
-}
-.calendar-day .mark {
-  font-size: 1rem;
-  font-weight: 700;
+  color: var(--text-secondary);
+  font-weight: 600;
 }
 
 .progress-outer {
   height: 20px;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.08);
   border-radius: 999px;
   overflow: hidden;
 }
 .progress-inner {
   height: 100%;
-  background: linear-gradient(90deg, #06b6d4, #3b82f6, #8b5cf6);
+  background: linear-gradient(90deg, #3498db, #2980b9);
   transition: width 0.4s ease;
 }
 
 .footer {
-  color: #94a3b8;
+  color: var(--text-secondary);
   font-size: 0.9rem;
+}
+
+/* Fix per z-index dropdown menu */
+.dropdown-menu {
+  z-index: 1050 !important;
+}
+
+/* Stili per il grafico Recharts */
+.recharts-text {
+  font-family: var(--font-family);
+  fill: var(--text-secondary);
 }

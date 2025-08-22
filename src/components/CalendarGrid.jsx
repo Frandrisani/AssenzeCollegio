@@ -1,53 +1,100 @@
-import React from 'react'
-import { Card, Button, Badge } from 'react-bootstrap'
-import dayjs from 'dayjs'
-import { daysInMonth, monthName, statusCycle, ymd, isAugust, academicYearFor } from '../utils/dateUtils'
+import React from "react";
+import { Card, Badge, Alert, Button } from "react-bootstrap";
+import dayjs from "dayjs";
+import { daysInMonth, monthName, ymd, isAugust } from "../utils/dateUtils";
 
-export default function CalendarGrid({year, month, entries, onToggleDay}) {
-  const days = daysInMonth(year, month)
-  const startWeekday = dayjs(days[0]).day() // 0 Sunday .. 6 Saturday
-  const blanks = Array(startWeekday).fill(null)
-  const { start, end } = academicYearFor()
+export default function CalendarGrid({
+  year,
+  month,
+  entries,
+  onToggleDay,
+  onPrevMonth,
+  onNextMonth,
+  academicStart,
+  academicEnd,
+}) {
+  const days = daysInMonth(year, month);
+  const startWeekday = dayjs(days[0]).isoWeekday() - 1;
+  const blanks = Array(startWeekday).fill(null);
+  const cells = [...blanks, ...days];
+  const header = ["L", "M", "M", "G", "V", "S", "D"];
 
-  const cells = [...blanks, ...days]
-
-  const header = ['D', 'L', 'M', 'M', 'G', 'V', 'S']
+  // Logica per disabilitare le frecce
+  const currentMonth = dayjs().year(year).month(month);
+  const isFirstMonth = currentMonth.isSame(academicStart, "month");
+  const isLastMonth = currentMonth.isSame(academicEnd, "month");
 
   return (
-    <Card className="glass rounded-4 p-3">
-      <div className="d-flex align-items-center justify-content-between">
-        <h5 className="mb-2">{monthName(month)} {year}</h5>
-        <div className="d-flex gap-2 align-items-center">
-          <Badge bg="danger" className="badge-status badge-A">A</Badge>
-          <span className="text-secondary small">Assenza (conteggia)</span>
-          <Badge bg="success" className="badge-status badge-G">G</Badge>
-          <span className="text-secondary small">Giustificata</span>
-          <Badge bg="secondary" className="badge-status badge-F">F</Badge>
-          <span className="text-secondary small">Festivo</span>
-        </div>
+    <Card className="glass rounded-4 p-3 h-100">
+      {/* --- MODIFICA PRINCIPALE: NUOVA NAVIGAZIONE --- */}
+      <div className="d-flex align-items-center justify-content-between mb-3">
+        <Button
+          variant="outline-secondary"
+          size="sm"
+          onClick={onPrevMonth}
+          disabled={isFirstMonth}
+        >
+          &lt;
+        </Button>
+        <h5 className="mb-0 text-center" style={{ width: "150px" }}>
+          {monthName(month)} {year}
+        </h5>
+        <Button
+          variant="outline-secondary"
+          size="sm"
+          onClick={onNextMonth}
+          disabled={isLastMonth}
+        >
+          &gt;
+        </Button>
       </div>
-      <div className="d-grid" style={{gridTemplateColumns:'repeat(7, 1fr)', gap:'6px'}}>
-        {header.map((h,i)=>(
-          <div key={i} className="text-center text-secondary small mb-1">{h}</div>
+
+      <div
+        className="d-grid"
+        style={{ gridTemplateColumns: "repeat(7, 1fr)", gap: "6px" }}
+      >
+        {header.map((h, i) => (
+          <div
+            key={i}
+            className="text-center text-secondary small mb-1 fw-bold"
+          >
+            {h}
+          </div>
         ))}
-        {cells.map((d, i)=>{
-          if (!d) return <div key={'b'+i}></div>
-          const dateStr = ymd(d)
-          const s = entries[dateStr] || null
-          const disabled = !d.isAfter(start.subtract(1,'day')) || !d.isBefore(end.add(1,'day'))
-          const august = isAugust(d)
-          const cls = ['calendar-day','rounded-3', (disabled || august) ? 'disabled' : ''].join(' ')
+        {cells.map((d, i) => {
+          if (!d) return <div key={"b" + i}></div>;
+          const dateStr = d.format("YYYY-MM-DD");
+          const s = entries[dateStr] || null;
+          const disabled =
+            !d.isAfter(academicStart.subtract(1, "day")) ||
+            !d.isBefore(academicEnd.add(1, "day"));
+          const august = isAugust(d);
+          const cls = [
+            "calendar-day",
+            disabled || august ? "disabled" : "",
+          ].join(" ");
+
           return (
-            <div key={dateStr} className={cls} onClick={()=> !disabled && !august && onToggleDay(dateStr, s)}>
+            <div
+              key={dateStr}
+              className={cls}
+              onClick={() => !disabled && !august && onToggleDay(dateStr, s)}
+            >
               <div className="date-num">{d.date()}</div>
-              <div className="d-flex justify-content-end">
-                {s && <Badge className={'badge-status badge-' + s}>{s}</Badge>}
+              <div className="d-flex justify-content-end align-items-end h-100">
+                {s && <Badge className={"badge-status badge-" + s}>{s}</Badge>}
               </div>
             </div>
-          )
+          );
         })}
       </div>
-      <p className="mt-2 text-secondary small">* Agosto non viene conteggiato.</p>
+      <Alert
+        variant="light"
+        className="mt-3 text-center small p-2 mb-0 border-0"
+      >
+        <strong>Come funziona:</strong> clicca sui giorni per ciclare tra A → G
+        → F → vuoto.
+      </Alert>
     </Card>
-  )
+  );
 }
