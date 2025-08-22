@@ -1,0 +1,85 @@
+:root {
+  --bg: #0f172a;
+  --card: #111827;
+  --muted: #94a3b8;
+  --accent: #0ea5e9;
+  --ok: #22c55e;
+  --warn: #f59e0b;
+  --bad: #ef4444;
+}
+
+body {
+  background: radial-gradient(
+    1200px 800px at 80% -10%,
+    #1f2937 0%,
+    #0b1220 60%,
+    #060913 100%
+  );
+  min-height: 100vh;
+  color: #e5e7eb;
+}
+
+.glass {
+  background: rgba(17, 24, 39, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(8px);
+}
+
+.badge-status {
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+.badge-A {
+  background: var(--bad) !important;
+}
+.badge-G {
+  background: var(--ok) !important;
+}
+.badge-F {
+  background: var(--muted) !important;
+  color: #0b0f19 !important;
+}
+
+.calendar-day {
+  height: 64px;
+  border: 1px dashed rgba(255, 255, 255, 0.07);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 6px;
+  transition: transform 0.05s ease;
+}
+.calendar-day:hover {
+  transform: translateY(-1px);
+}
+.calendar-day.disabled {
+  opacity: 0.35;
+  pointer-events: none;
+}
+.calendar-day .date-num {
+  font-size: 0.85rem;
+  color: #9ca3af;
+}
+.calendar-day .mark {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.progress-outer {
+  height: 20px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.progress-inner {
+  height: 100%;
+  background: linear-gradient(90deg, #06b6d4, #3b82f6, #8b5cf6);
+  transition: width 0.4s ease;
+}
+
+.footer {
+  color: #94a3b8;
+  font-size: 0.9rem;
+}
