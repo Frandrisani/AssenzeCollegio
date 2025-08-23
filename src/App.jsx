@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Container, Navbar, Button, Row, Col } from "react-bootstrap";
+import { Container, Navbar, Button, Row, Col, Card } from "react-bootstrap"; // <-- Aggiunto Card
 import { ToastContainer, toast } from "react-toastify";
 import dayjs from "dayjs";
 
@@ -12,7 +12,7 @@ import { db } from "./firebase";
 import AuthGate from "./components/AuthGate";
 import CalendarGrid from "./components/CalendarGrid";
 import Dashboard from "./components/Dashboard";
-import SplashScreen from "./components/SplashScreen"; // Assicurati di aver creato questo file
+import SplashScreen from "./components/SplashScreen";
 
 // Utility per le date
 import { academicYearFor, isWithinAcademicYear } from "./utils/dateUtils";
@@ -23,43 +23,35 @@ import "react-toastify/dist/ReactToastify.css";
 export default function App() {
   // --- STATI DELL'APPLICAZIONE ---
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true); // Per gestire lo splash screen
+  const [loading, setLoading] = useState(true);
   const [entries, setEntries] = useState({});
-
-  // Gestione del tema con salvataggio in localStorage
   const [theme, setTheme] = useState(
     () => localStorage.getItem("theme") || "light"
   );
-
-  // Logica per impostare il mese iniziale del calendario
   const [yearMonth, setYearMonth] = useState(() => {
     const today = dayjs();
     const { start, end } = academicYearFor();
-    let initialDate = start; // Default: primo mese dell'anno accademico
+    let initialDate = start;
     if (isWithinAcademicYear(today, { start, end })) {
-      initialDate = today; // Se siamo nell'anno accademico, usa il mese corrente
+      initialDate = today;
     }
     return { year: initialDate.year(), month: initialDate.month() };
   });
 
   // --- EFFECTS ---
-
-  // Effetto per applicare il tema al body
   useEffect(() => {
     document.body.setAttribute("data-theme", theme);
     localStorage.setItem("theme", theme);
   }, [theme]);
 
-  // Effetto per l'autenticazione
   useEffect(() => {
     const unsub = onAuth((u) => {
       setUser(u || null);
-      setLoading(false); // Fine del caricamento
+      setLoading(false);
     });
     return () => unsub();
   }, []);
 
-  // Effetto per la sincronizzazione dati con Firestore
   useEffect(() => {
     if (!user) return;
     const { start } = academicYearFor();
@@ -72,7 +64,6 @@ export default function App() {
   }, [user]);
 
   // --- FUNZIONI HANDLER ---
-
   const toggleTheme = () =>
     setTheme((prev) => (prev === "light" ? "dark" : "light"));
 
@@ -88,13 +79,11 @@ export default function App() {
     const updated = { ...entries };
     if (!next) delete updated[dateStr];
     else updated[dateStr] = next;
-
     const formattedDate = dayjs(dateStr, "YYYY-MM-DD").format("DD/MM/YYYY");
-
     saveEntries(updated)
-      .then(() => {
-        toast.success(`Giorno ${formattedDate} impostato a ${next || "vuoto"}`);
-      })
+      .then(() =>
+        toast.success(`Giorno ${formattedDate} impostato a ${next || "vuoto"}`)
+      )
       .catch((err) => {
         toast.error("Errore nel salvataggio");
         console.error(err);
@@ -114,29 +103,22 @@ export default function App() {
     setYearMonth({ year: next.year(), month: next.month() });
   };
 
-  // --- RENDERIZZAZIONE CONDIZIONALE ---
-
-  // 1. Mostra lo splash screen mentre si verifica l'auth
-  if (loading) {
+  // --- RENDERIZZAZIONE ---
+  if (loading)
     return (
       <>
         <SplashScreen />
         <ToastContainer position="bottom-right" theme={theme} />
       </>
     );
-  }
-
-  // 2. Se l'utente non è loggato, mostra la schermata di accesso
-  if (!user) {
+  if (!user)
     return (
       <>
         <AuthGate />
         <ToastContainer position="bottom-right" theme={theme} />
       </>
     );
-  }
 
-  // 3. L'utente è loggato, mostra l'app principale
   const { start, end } = academicYearFor();
   return (
     <>
@@ -176,7 +158,6 @@ export default function App() {
             <Dashboard entries={entries} showProgress={true} />
           </Col>
         </Row>
-
         <Row className="g-4">
           <Col lg={7} md={12}>
             <CalendarGrid
@@ -192,6 +173,35 @@ export default function App() {
           </Col>
           <Col lg={5} md={12}>
             <Dashboard entries={entries} showStats={true} />
+          </Col>
+        </Row>
+
+        {/* --- NUOVO: SEZIONE CREDITI --- */}
+        <Row className="mt-4">
+          <Col>
+            <Card className="glass p-3 rounded-4">
+              <p className="text-center text-secondary mb-0 small">
+                Web App sviluppata da <strong>Francesco Andrisani</strong>
+              </p>
+              <div className="d-flex justify-content-center gap-3 mt-2">
+                <a
+                  href="https://www.instagram.com/_frandrisani_/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-secondary"
+                >
+                  Instagram
+                </a>
+                <a
+                  href="https://github.com/frandrisani"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-secondary"
+                >
+                  GitHub
+                </a>
+              </div>
+            </Card>
           </Col>
         </Row>
       </Container>
