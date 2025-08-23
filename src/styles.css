@@ -10,21 +10,62 @@
   --font-family: "Poppins", sans-serif;
 }
 
+/* --- TEMA SCURO --- */
+[data-theme="dark"] {
+  --bg: #22272e;
+  --card-bg: rgba(45, 51, 59, 0.85);
+  --card-border: rgba(255, 255, 255, 0.12);
+  --text-primary: #ffffff;
+  --text-secondary: #ffffff;
+  --accent: #58a6ff;
+  --ok: #3fb950;
+  --bad: #f85149;
+}
+
 body {
   background-color: var(--bg);
   min-height: 100vh;
   color: var(--text-primary);
   font-family: var(--font-family);
+  transition: background-color 0.3s ease, color 0.3s ease;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* --- Stile "Glass" con animazione --- */
 .glass {
   background: var(--card-bg);
   border: 1px solid var(--card-border);
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
+  transition: all 0.3s ease-in-out;
+}
+.glass:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 36px 0 rgba(0, 0, 0, 0.12);
+}
+
+/* --- Tipografia --- */
+h1,
+.h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+}
+h3,
+.h3 {
+  font-size: 1.8rem;
+  font-weight: 600;
+}
+h4,
+.h4 {
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+h5,
+.h5 {
+  font-size: 1.15rem;
+  font-weight: 600;
 }
 
 .badge-status {
@@ -55,7 +96,7 @@ body {
   justify-content: space-between;
   padding: 6px;
   transition: all 0.2s ease;
-  border-radius: 8px; /* Aggiunto per un look più morbido */
+  border-radius: 8px;
 }
 .calendar-day:hover {
   transform: translateY(-2px);
@@ -81,7 +122,7 @@ body {
 }
 .progress-inner {
   height: 100%;
-  background: linear-gradient(90deg, #3498db, #2980b9);
+  background: linear-gradient(90deg, var(--accent), #2980b9);
   transition: width 0.4s ease;
 }
 
@@ -90,13 +131,10 @@ body {
   font-size: 0.9rem;
 }
 
-/* Fix per z-index dropdown menu */
-.dropdown-menu {
-  z-index: 1050 !important;
-}
-
-/* Stili per il grafico Recharts */
-.recharts-text {
-  font-family: var(--font-family);
-  fill: var(--text-secondary);
+/* --- Stili per la legenda del calendario --- */
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
 }

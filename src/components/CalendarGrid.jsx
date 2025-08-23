@@ -1,7 +1,7 @@
 import React from "react";
 import { Card, Badge, Alert, Button } from "react-bootstrap";
 import dayjs from "dayjs";
-import { daysInMonth, monthName, ymd, isAugust } from "../utils/dateUtils";
+import { daysInMonth, monthName, isAugust } from "../utils/dateUtils";
 
 export default function CalendarGrid({
   year,
@@ -26,7 +26,7 @@ export default function CalendarGrid({
 
   return (
     <Card className="glass rounded-4 p-3 h-100">
-      {/* --- MODIFICA PRINCIPALE: NUOVA NAVIGAZIONE --- */}
+      {/* --- Navigazione Mesi --- */}
       <div className="d-flex align-items-center justify-content-between mb-3">
         <Button
           variant="outline-secondary"
@@ -49,6 +49,7 @@ export default function CalendarGrid({
         </Button>
       </div>
 
+      {/* --- Griglia Calendario --- */}
       <div
         className="d-grid"
         style={{ gridTemplateColumns: "repeat(7, 1fr)", gap: "6px" }}
@@ -88,12 +89,29 @@ export default function CalendarGrid({
           );
         })}
       </div>
+
+      {/* --- Legenda e Istruzioni --- */}
+      <div className="mt-3 text-center d-flex justify-content-center align-items-center flex-wrap gap-3">
+        <span className="legend-item">
+          <Badge className="badge-status badge-A">A</Badge>Assenza
+        </span>
+        <span className="legend-item">
+          <Badge className="badge-status badge-G">G</Badge>Giustifica
+        </span>
+        <span className="legend-item">
+          <Badge className="badge-status badge-F">F</Badge>Festivo
+        </span>
+      </div>
+
       <Alert
         variant="light"
-        className="mt-3 text-center small p-2 mb-0 border-0"
+        className="mt-2 text-center small p-2 mb-0 border-0 bg-transparent"
       >
-        <strong>Come funziona:</strong> clicca sui giorni per ciclare tra A → G
-        → F → vuoto.
+        <strong>Nota:</strong> Le assenze giustificate (G) e i festivi (F) non
+        vengono conteggiati.
+        <hr className="my-1" />
+        <strong>Come funziona:</strong> Clicca su un giorno per ciclare tra A →
+        G → F → vuoto.
       </Alert>
     </Card>
   );

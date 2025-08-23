@@ -2,41 +2,64 @@ import React, { useEffect, useState } from "react";
 import { Container, Navbar, Button, Row, Col } from "react-bootstrap";
 import { ToastContainer, toast } from "react-toastify";
 import dayjs from "dayjs";
+
+// Funzioni da firebase
 import { onAuth, logout } from "./firebase";
+import { doc, setDoc, onSnapshot } from "firebase/firestore";
+import { db } from "./firebase";
+
+// Componenti UI
 import AuthGate from "./components/AuthGate";
 import CalendarGrid from "./components/CalendarGrid";
 import Dashboard from "./components/Dashboard";
-import { doc, setDoc, onSnapshot } from "firebase/firestore";
-import { db } from "./firebase";
-import { academicYearFor } from "./utils/dateUtils";
+import SplashScreen from "./components/SplashScreen"; // Assicurati di aver creato questo file
+
+// Utility per le date
+import { academicYearFor, isWithinAcademicYear } from "./utils/dateUtils";
+
+// Stili
 import "react-toastify/dist/ReactToastify.css";
 
 export default function App() {
+  // --- STATI DELL'APPLICAZIONE ---
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true); // Per gestire lo splash screen
   const [entries, setEntries] = useState({});
+
+  // Gestione del tema con salvataggio in localStorage
+  const [theme, setTheme] = useState(
+    () => localStorage.getItem("theme") || "light"
+  );
+
+  // Logica per impostare il mese iniziale del calendario
   const [yearMonth, setYearMonth] = useState(() => {
-    const { start } = academicYearFor();
-    return { year: start.year(), month: start.month() };
+    const today = dayjs();
+    const { start, end } = academicYearFor();
+    let initialDate = start; // Default: primo mese dell'anno accademico
+    if (isWithinAcademicYear(today, { start, end })) {
+      initialDate = today; // Se siamo nell'anno accademico, usa il mese corrente
+    }
+    return { year: initialDate.year(), month: initialDate.month() };
   });
 
-  // --- BLOCCO DI DEBUG ---
+  // --- EFFECTS ---
+
+  // Effetto per applicare il tema al body
   useEffect(() => {
-    console.log("... [App.jsx] Imposto il listener onAuth...");
+    document.body.setAttribute("data-theme", theme);
+    localStorage.setItem("theme", theme);
+  }, [theme]);
+
+  // Effetto per l'autenticazione
+  useEffect(() => {
     const unsub = onAuth((u) => {
-      // Questo è il messaggio PIÙ IMPORTANTE. Se non appare dopo il login,
-      // la comunicazione con Firebase non sta funzionando.
-      console.log("🔥 [App.jsx] Listener onAuth ATTIVATO! L'utente è:", u);
       setUser(u || null);
+      setLoading(false); // Fine del caricamento
     });
+    return () => unsub();
+  }, []);
 
-    // Questa è una "funzione di pulizia" che viene eseguita quando il componente non è più visibile
-    return () => {
-      console.log("... [App.jsx] Pulisco il listener onAuth.");
-      unsub();
-    };
-  }, []); // L'array vuoto [] assicura che questo codice venga eseguito solo una volta
-
-  // Sincronizzazione dati con Firestore
+  // Effetto per la sincronizzazione dati con Firestore
   useEffect(() => {
     if (!user) return;
     const { start } = academicYearFor();
@@ -47,6 +70,11 @@ export default function App() {
     });
     return () => unsub();
   }, [user]);
+
+  // --- FUNZIONI HANDLER ---
+
+  const toggleTheme = () =>
+    setTheme((prev) => (prev === "light" ? "dark" : "light"));
 
   const saveEntries = async (newMap) => {
     const { start } = academicYearFor();
@@ -86,18 +114,30 @@ export default function App() {
     setYearMonth({ year: next.year(), month: next.month() });
   };
 
-  // Se l'utente non è loggato, mostra la schermata di accesso
-  if (!user)
+  // --- RENDERIZZAZIONE CONDIZIONALE ---
+
+  // 1. Mostra lo splash screen mentre si verifica l'auth
+  if (loading) {
+    return (
+      <>
+        <SplashScreen />
+        <ToastContainer position="bottom-right" theme={theme} />
+      </>
+    );
+  }
+
+  // 2. Se l'utente non è loggato, mostra la schermata di accesso
+  if (!user) {
     return (
       <>
         <AuthGate />
-        <ToastContainer position="bottom-right" theme="colored" />
+        <ToastContainer position="bottom-right" theme={theme} />
       </>
     );
+  }
 
-  // Se l'utente è loggato, calcola i dati e mostra la dashboard
+  // 3. L'utente è loggato, mostra l'app principale
   const { start, end } = academicYearFor();
-
   return (
     <>
       <Navbar expand="lg" className="glass rounded-bottom-4 mb-4">
@@ -105,7 +145,15 @@ export default function App() {
           <Navbar.Brand>Assenze Alloggio</Navbar.Brand>
           <Navbar.Toggle />
           <Navbar.Collapse className="justify-content-end">
-            <div className="d-flex align-items-center gap-2">
+            <div className="d-flex align-items-center gap-3">
+              <Button
+                variant="outline-secondary"
+                size="sm"
+                onClick={toggleTheme}
+                className="rounded-pill"
+              >
+                {theme === "light" ? "🌙" : "☀️"}
+              </Button>
               <span className="text-secondary small d-none d-lg-block">
                 {user.displayName}
               </span>
