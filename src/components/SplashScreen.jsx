@@ -8,7 +8,7 @@ export default function SplashScreen() {
       style={{ minHeight: "100vh" }}
     >
       <h1 className="mb-4" style={{ fontWeight: 700 }}>
-        Assenze Collegio
+        Assenze Alloggio
       </h1>
       <p className="text-secondary mb-4">Verifica autenticazione in corso...</p>
       <Spinner animation="border" variant="primary" />

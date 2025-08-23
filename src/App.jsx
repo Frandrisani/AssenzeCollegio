@@ -124,7 +124,9 @@ export default function App() {
     <>
       <Navbar expand="lg" className="glass rounded-bottom-4 mb-4">
         <Container>
-          <Navbar.Brand>Assenze Alloggio</Navbar.Brand>
+          <Navbar.Brand style={{ fontWeight: 800 }}>
+            Assenze Alloggio
+          </Navbar.Brand>
           <Navbar.Toggle />
           <Navbar.Collapse className="justify-content-end">
             <div className="d-flex align-items-center gap-3">
